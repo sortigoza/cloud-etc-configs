@@ -1,24 +1,22 @@
 from functools import reduce
 from dataclasses import dataclass
-import consul
-import boto3
-import botocore
+import etcd3
 
 from cloud_etc_configs.entities import Remotekey, ServiceConfiguration
 
 
-class ConsulAdapter:
+class Etcd3Adapter:
     def __init__(self, remote_base_key):
-        self.client = consul.Consul().kv
+        self.client = etcd3.client(host="localhost", port=9500)
         self.remote_base_key = remote_base_key
 
     def get_all_parameters(self):
-        res = self.client.get(self.remote_base_key, recurse=True)
+        res = self.client.get_prefix(self.remote_base_key)
 
         def to_remote_key(item):
-            return Remotekey(key=item["Key"], value=item["Value"].decode())
+            return Remotekey(key=item[1].key.decode(), value=item[0].decode())
 
-        return [to_remote_key(x) for x in res[1]]
+        return [to_remote_key(x) for x in res]
 
     def update_key(self, key, value):
         res = self.client.put(key, value)
@@ -43,10 +41,9 @@ class ConsulAdapter:
             return state.split("\n")
 
         response = self.client.get(service_configuration.remote_state_path)
-        item = response[1]
-        if item:
+        if response[0]:
             return Remotekey(
-                key=item["Key"], value=decode_state(item["Value"].decode())
+                key=response[1].key.decode(), value=decode_state(response[0].decode())
             )
         else:
             return Remotekey(key=service_configuration.remote_state_path, value="")
