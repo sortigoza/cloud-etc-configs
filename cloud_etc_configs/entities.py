@@ -1,19 +1,21 @@
 from __future__ import annotations
 
-# from pydantic import BaseModel
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Optional
+
+from pydantic import BaseModel, DirectoryPath, FilePath
 
 
 @dataclass
 class Configuration:
-    config_file_name: str
-    config_file_path: str
-    base_path: str
-    remote_base_key: str
+    config_file_name: Path
+    config_file_path: FilePath
+    base_path: DirectoryPath
+    remote_base_key: Path
     environment: str
-    common: str
+    common: Path
     parameter_storage: str
 
 
@@ -40,13 +42,15 @@ class PlanDiff:
         )
 
 
-@dataclass
-class ServiceConfiguration:
+class ServiceConfiguration(BaseModel):
     environment: str
     service_name: str
     path: str
     remote_state_path: str
     configurations: List[Remotekey]
+
+    class Config:
+        arbitrary_types_allowed = True
 
     def add_common_keys(self, configuration: Optional[ServiceConfiguration]):
         if configuration is None:

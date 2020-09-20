@@ -28,7 +28,7 @@ validate: lint test ## run linter and tests
 .PHONY: test
 test: install ## run tests
 	@echo "Running tests"
-	@python -m pytest --cov-append -s -v tests/
+	@python -m pytest --cov=cloud_etc_configs --cov-append --cov-report term-missing -v tests/
 
 .PHONY: fmt
 fmt: ## format files
