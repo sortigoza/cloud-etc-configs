@@ -8,11 +8,11 @@ from typing import List
 
 from toolz.functoolz import pipe
 
-from automation.adapters import get_remote_handler
-from automation.diff_engine import compute_diff, dummy_diff
-from automation.entities import Configuration, Remotekey, ServiceConfiguration
-from automation.loader import load_services_configurations, load_tool_config
-from automation.logger import get_logger
+from cloud_etc_configs.adapters import get_remote_handler
+from cloud_etc_configs.diff_engine import compute_diff, dummy_diff
+from cloud_etc_configs.entities import Configuration, Remotekey, ServiceConfiguration
+from cloud_etc_configs.loader import load_services_configurations, load_tool_config
+from cloud_etc_configs.logger import get_logger
 
 logger = get_logger()
 

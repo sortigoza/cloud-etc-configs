@@ -2,7 +2,7 @@ from functools import partial
 from pprint import pprint
 from typing import Dict, List, Set
 
-from automation.entities import PlanDiff, Remotekey, ServiceConfiguration
+from cloud_etc_configs.entities import PlanDiff, Remotekey, ServiceConfiguration
 
 
 def dummy_diff(

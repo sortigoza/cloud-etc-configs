@@ -8,8 +8,8 @@ from typing import Dict
 
 import yaml
 
-from automation.entities import Configuration, ServiceConfiguration
-from automation.logger import get_logger
+from cloud_etc_configs.entities import Configuration, ServiceConfiguration
+from cloud_etc_configs.logger import get_logger
 
 logger = get_logger()
 

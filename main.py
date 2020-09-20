@@ -1,4 +1,4 @@
-from automation.sync_task import SyncTask
+from cloud_etc_configs.sync_task import SyncTask
 
 task = SyncTask()
 task.execute()

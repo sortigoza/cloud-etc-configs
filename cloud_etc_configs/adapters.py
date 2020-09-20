@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import boto3
 import botocore
 
-from automation.entities import Remotekey
+from cloud_etc_configs.entities import Remotekey
 
 
 class SSMAdapter:
