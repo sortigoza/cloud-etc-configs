@@ -1,19 +1,20 @@
+import dataclasses
 import operator
+from dataclasses import dataclass
+from functools import partial, reduce
 from itertools import groupby
-from functools import reduce, partial
+from pprint import pformat, pprint
 from typing import List
 
-from pprint import pprint
 from toolz.functoolz import pipe
-from automation.diff_engine import compute_diff, dummy_diff
-from automation.loader import load_configurations
-from automation.entities import (
-    ServiceConfiguration,
-    Remotekey,
-    Configuration,
-)
+
 from automation.adapters import get_remote_handler
-from dataclasses import dataclass
+from automation.diff_engine import compute_diff, dummy_diff
+from automation.entities import Configuration, Remotekey, ServiceConfiguration
+from automation.loader import load_services_configurations, load_tool_config
+from automation.logger import get_logger
+
+logger = get_logger()
 
 
 @dataclass
@@ -36,19 +37,19 @@ class SyncTask:
         return common, environments
 
     def execute(self):
-        self.config = Configuration()
+        self.config = load_tool_config(base_path="./environment/development")
         self.remote_handler = get_remote_handler(
-            self.config.remote_store_type, self.config.base_path
+            self.config.parameter_storage, self.config.remote_base_key
         )
 
         pipe(
-            load_configurations(self.config),
+            load_services_configurations(self.config),
+            partial(self.print_state, "all_services_configurations"),
             self.combine_with_common_configurations,
             partial(self.print_state, "env_services_configurations"),
             self.get_remote_configuration_state,
-            partial(self.print_state, "diff_input"),
             self.compute_the_diff,
-            partial(self.print_state, "parameters_diff"),
+            self.print_diff,
             self.apply_the_diff_with_metadata,
         )
 
@@ -88,14 +89,28 @@ class SyncTask:
         # Update the Diff and Update apply metadata, skip if dry-run
         for service_with_diff in parameters_diff:
             current_plan = service_with_diff["diff"]
-            for parameter in current_plan["create"] + current_plan["update"]:
+            for parameter in current_plan.create + current_plan.update:
                 self.remote_handler.update_key(parameter.key, parameter.value)
-            for parameter in current_plan["delete"]:
+            for parameter in current_plan.delete:
                 self.remote_handler.delete_key(parameter.key)
             self.remote_handler.write_state(service_with_diff["service_configuration"])
 
     def print_state(self, message, value):
-        print(f"{message}:")
-        pprint(value)
+        if dataclasses.is_dataclass(value):
+            logger.info("%s: \n%s", message, pformat(dataclasses.asdict(value)))
+        elif isinstance(value, list) or isinstance(value, dict):
+            logger.info("%s: \n%s", message, pformat(value))
+        else:
+            logger.info("%s: %s", message, value)
 
         return value
+
+    def print_diff(self, diffs_list):
+        for x in diffs_list:
+            pprint(
+                {
+                    "service_name": x["service_configuration"].service_name,
+                    "diff": dataclasses.asdict(x["diff"]),
+                }
+            )
+        return diffs_list

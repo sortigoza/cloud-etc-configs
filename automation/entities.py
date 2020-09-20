@@ -1,14 +1,20 @@
 from __future__ import annotations
-from typing import Optional, List
+
+# from pydantic import BaseModel
 import re
 from dataclasses import dataclass
+from typing import List, Optional
 
 
 @dataclass
 class Configuration:
-    remote_store_type: str = "ssm"
-    base_path: str = "/saul-test"
-    target_environment: str = "development"
+    config_file_name: str
+    config_file_path: str
+    base_path: str
+    remote_base_key: str
+    environment: str
+    common: str
+    parameter_storage: str
 
 
 @dataclass
@@ -18,12 +24,28 @@ class Remotekey:
 
 
 @dataclass
+class PlanDiff:
+    ok: List
+    create: List
+    update: List
+    delete: List
+
+    @staticmethod
+    def new_with_mutable_defaults():
+        return PlanDiff(
+            ok=[],
+            create=[],
+            update=[],
+            delete=[],
+        )
+
+
+@dataclass
 class ServiceConfiguration:
     environment: str
     service_name: str
     path: str
     remote_state_path: str
-    kv_path: str
     configurations: List[Remotekey]
 
     def add_common_keys(self, configuration: Optional[ServiceConfiguration]):
@@ -42,27 +64,22 @@ class ServiceConfiguration:
         return [x.key for x in self.configurations]
 
     @staticmethod
-    def from_path_and_data(path, raw_configuration, remote_base_path):
-        match = re.search(r"environment/(.*)/(.*)\.yaml", path, re.I)
-        if match:
-            environment = match.group(1)
-            service_name = match.group(2)
-        assert service_name == raw_configuration["service_name"]
+    def from_raw_data(raw_configuration, path, environment, remote_base_key):
+        service_name = raw_configuration["service_name"]
         configurations = ServiceConfiguration._build_keys(
-            remote_base_path, service_name, raw_configuration["configuration"]
+            remote_base_key, service_name, raw_configuration["configuration"]
         )
         return ServiceConfiguration(
             environment=environment,
             path=path,
             service_name=service_name,
-            kv_path=service_name,
-            remote_state_path=f"{remote_base_path}/{service_name}/state-metadata",
+            remote_state_path=f"{remote_base_key}/{service_name}/state-metadata",
             configurations=configurations,
         )
 
     @staticmethod
-    def _build_keys(remote_base_path, service_name, keys_dict):
+    def _build_keys(remote_base_key, service_name, keys_dict):
         def remote_key(param_name):
-            return f"{remote_base_path}/{service_name}/{param_name}"
+            return f"{remote_base_key}/{service_name}/{param_name}"
 
         return [Remotekey(key=remote_key(k), value=v) for k, v in keys_dict.items()]

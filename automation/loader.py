@@ -1,9 +1,17 @@
-from itertools import groupby
 import operator
+import os
+import re
+from dataclasses import asdict
 from glob import glob
+from itertools import groupby
+from typing import Dict
+
 import yaml
 
-from automation.entities import ServiceConfiguration, Configuration
+from automation.entities import Configuration, ServiceConfiguration
+from automation.logger import get_logger
+
+logger = get_logger()
 
 
 def _read_yaml_to_dict(file_path) -> dict:
@@ -11,8 +19,20 @@ def _read_yaml_to_dict(file_path) -> dict:
         return yaml.safe_load(f.read())
 
 
-def _get_etc_files():
-    return list(glob("environment/**/*.yaml"))
+def _get_etc_files(config: Configuration):
+    return [
+        x
+        for x in glob(f"{config.base_path}/**/*.yaml", recursive=True)
+        if not re.match(f".*/{config.config_file_name}", x, re.I)
+    ]
+
+
+def _get_etc_common_files(config: Configuration):
+    return [
+        x
+        for x in glob(f"{config.base_path}/{config.common}/**/*.yaml", recursive=True)
+        if not re.match(f".*/{config.config_file_name}", x, re.I)
+    ]
 
 
 def _group_by_service_name(services_conf):
@@ -22,21 +42,50 @@ def _group_by_service_name(services_conf):
     }
 
 
-def load_configurations(config: Configuration):
+def load_tool_config(
+    base_path: str, config_file_name: str = "cloud-etc-config.yaml"
+) -> Configuration:
+    config_file_path = os.path.join(base_path, config_file_name)
+    raw_config = _read_yaml_to_dict(config_file_path)
+    logger.info("found config at: %s", config_file_path)
+    config = Configuration(
+        config_file_name=config_file_name,
+        config_file_path=config_file_path,
+        base_path=base_path,
+        remote_base_key=raw_config["remote_base_key"],
+        environment=raw_config["environment"],
+        common=raw_config["common"],
+        parameter_storage=raw_config["parameter_storage"],
+    )
+    logger.info("loaded config: %s", asdict(config))
+    return config
+
+
+def load_services_configurations(
+    config: Configuration,
+) -> Dict[str, ServiceConfiguration]:
     """
     scans all the configuration files and returns
     the service configurations for the target environment
     """
-    files = _get_etc_files()
-
-    services_conf = []
-    for f_path in files:
-        service_config = ServiceConfiguration.from_path_and_data(
-            path=f_path,
+    services_conf = [
+        ServiceConfiguration.from_raw_data(
             raw_configuration=_read_yaml_to_dict(f_path),
-            remote_base_path=config.base_path,
+            path=f_path,
+            environment=config.environment,
+            remote_base_key=config.remote_base_key,
         )
-        if service_config.environment in (config.target_environment, "common"):
-            services_conf.append(service_config)
+        for f_path in _get_etc_files(config)
+    ]
 
-    return _group_by_service_name(services_conf)
+    services_common_conf = [
+        ServiceConfiguration.from_raw_data(
+            raw_configuration=_read_yaml_to_dict(f_path),
+            path=f_path,
+            environment="common",
+            remote_base_key=config.remote_base_key,
+        )
+        for f_path in _get_etc_common_files(config)
+    ]
+
+    return _group_by_service_name(services_conf + services_common_conf)

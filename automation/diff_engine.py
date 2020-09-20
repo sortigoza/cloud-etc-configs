@@ -1,11 +1,8 @@
 from functools import partial
 from pprint import pprint
-from typing import List, Set, Dict
+from typing import Dict, List, Set
 
-from automation.entities import (
-    ServiceConfiguration,
-    Remotekey,
-)
+from automation.entities import PlanDiff, Remotekey, ServiceConfiguration
 
 
 def dummy_diff(
@@ -56,12 +53,7 @@ def compute_service_diff(
     current_states_set: Set[str],
     env_config: ServiceConfiguration,
 ):
-    res_diff = {
-        "ok": [],
-        "create": [],
-        "update": [],
-        "delete": [],
-    }
+    res_diff = PlanDiff.new_with_mutable_defaults()
     keys = set([])
     for parameter in env_config.configurations:
         key = parameter.key
@@ -70,18 +62,18 @@ def compute_service_diff(
         kv_set_key = f"{parameter.key}/{parameter.value}"
         # the key is not present in exisitng parameters
         if key not in all_existing_parameters_k_set:
-            res_diff["create"].append(parameter)
+            res_diff.create.append(parameter)
         # the key and value are present in existing parameters
         elif kv_set_key in all_existing_parameters_kv_set:
-            res_diff["ok"].append(parameter)
+            res_diff.ok.append(parameter)
         # the key is present but since it dind't match the value (previous if)
         # it is differetn.
         elif key in all_existing_parameters_k_set:
-            res_diff["update"].append(parameter)
+            res_diff.update.append(parameter)
 
     # check keys that are present in the state but not in the config
     keys_to_delete = current_states_set - keys
     for key in keys_to_delete:
-        res_diff["delete"].append(Remotekey(key=key, value=""))
+        res_diff.delete.append(Remotekey(key=key, value=""))
 
     return res_diff

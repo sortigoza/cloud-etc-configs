@@ -1,14 +1,16 @@
+from dataclasses import dataclass
+
 import boto3
 import botocore
-from dataclasses import dataclass
+
 from automation.entities import Remotekey
 
 
 class SSMAdapter:
-    def __init__(self, aws_session, base_path):
+    def __init__(self, aws_session, remote_base_key):
         self.aws_session = aws_session
         self.client = self.aws_session.client("ssm")
-        self.base_path = base_path
+        self.remote_base_key = remote_base_key
 
     def get_all_parameters(self):
         parameters = self._get_parameters()
@@ -62,7 +64,7 @@ class SSMAdapter:
                     "Key": "Name",
                     "Option": "BeginsWith",
                     "Values": [
-                        self.base_path,
+                        self.remote_base_key,
                     ],
                 },
             ],
@@ -77,7 +79,7 @@ class SSMAdapter:
                         "Key": "Name",
                         "Option": "BeginsWith",
                         "Values": [
-                            self.base_path,
+                            self.remote_base_key,
                         ],
                     },
                 ],
@@ -97,8 +99,8 @@ class SSMAdapter:
             return Remotekey(key=name, value="")
 
 
-def get_remote_handler(name, base_path):
+def get_remote_handler(name, remote_base_key):
     if name == "ssm":
         aws_session = boto3.session.Session()
-        return SSMAdapter(aws_session, base_path)
+        return SSMAdapter(aws_session, remote_base_key)
     raise Exception(f"{name} did not match any of the available options")
