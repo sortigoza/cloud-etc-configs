@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import boto3
 import botocore
 
-from cloud_etc_configs.entities import Remotekey
+from cloud_etc_configs.entities import Remotekey, ServiceConfiguration
 
 
 class SSMAdapter:
@@ -35,7 +35,7 @@ class SSMAdapter:
 
         return response
 
-    def write_state(self, service_configuration):
+    def write_state(self, service_configuration: ServiceConfiguration):
         def encode_state(state):
             return "\n".join(state)
 
@@ -49,7 +49,7 @@ class SSMAdapter:
 
         return response
 
-    def get_current_state(self, service_configuration):
+    def get_current_state(self, service_configuration: ServiceConfiguration):
         def decode_state(state):
             return state.split("\n")
 
@@ -97,10 +97,3 @@ class SSMAdapter:
             return Remotekey(key=response["Name"], value=response["Value"])
         except self.client.exceptions.ParameterNotFound:
             return Remotekey(key=name, value="")
-
-
-def get_remote_handler(name, remote_base_key):
-    if name == "ssm":
-        aws_session = boto3.session.Session()
-        return SSMAdapter(aws_session, remote_base_key)
-    raise Exception(f"{name} did not match any of the available options")

@@ -8,7 +8,7 @@ from typing import List
 
 from toolz.functoolz import pipe
 
-from cloud_etc_configs.adapters import get_remote_handler
+from cloud_etc_configs.backends import get_remote_handler
 from cloud_etc_configs.diff_engine import compute_diff
 from cloud_etc_configs.entities import Configuration, Remotekey, ServiceConfiguration
 from cloud_etc_configs.loader import load_services_configurations, load_tool_config

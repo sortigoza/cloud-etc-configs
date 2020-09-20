@@ -1,7 +1,7 @@
 import os
 from cloud_etc_configs.sync_task import SyncTask
 from cloud_etc_configs.logger import get_logger
-from cloud_etc_configs.adapters import get_remote_handler
+from cloud_etc_configs.backends import get_remote_handler
 
 logger = get_logger()
 logger.setLevel("DEBUG")
