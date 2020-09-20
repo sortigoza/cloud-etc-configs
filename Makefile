@@ -32,8 +32,14 @@ test: install ## run tests
 
 .PHONY: fmt
 fmt: ## format files
+	autoflake --in-place --remove-all-unused-imports -r .
 	isort **/*.py
 	black .
+
+.PHONY: metrics
+metrics: ## code metrics
+	radon cc . --total-average -s
+	radon mi .
 
 .PHONY: lint
 lint: ## run lint

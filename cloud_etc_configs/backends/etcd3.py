@@ -1,5 +1,3 @@
-from functools import reduce
-from dataclasses import dataclass
 import etcd3
 
 from cloud_etc_configs.entities import Remotekey, ServiceConfiguration

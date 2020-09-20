@@ -1,8 +1,6 @@
 import dataclasses
-import operator
 from dataclasses import dataclass
 from functools import partial, reduce
-from itertools import groupby
 from pprint import pformat, pprint
 from typing import List
 
@@ -10,7 +8,7 @@ from toolz.functoolz import pipe
 
 from cloud_etc_configs.backends import get_remote_handler
 from cloud_etc_configs.diff_engine import compute_diff
-from cloud_etc_configs.entities import Configuration, Remotekey, ServiceConfiguration
+from cloud_etc_configs.entities import Remotekey, ServiceConfiguration
 from cloud_etc_configs.loader import load_services_configurations, load_tool_config
 from cloud_etc_configs.logger import get_logger
 

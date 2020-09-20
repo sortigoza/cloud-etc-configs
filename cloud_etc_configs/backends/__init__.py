@@ -1,6 +1,5 @@
 import boto3
 from cloud_etc_configs.backends.ssm_parameter_store import SSMAdapter
-from cloud_etc_configs.backends.consul import ConsulAdapter
 from cloud_etc_configs.backends.etcd3 import Etcd3Adapter
 
 

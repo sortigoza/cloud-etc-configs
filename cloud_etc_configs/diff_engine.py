@@ -1,5 +1,4 @@
 from functools import partial
-from pprint import pprint
 from typing import Dict, List, Set
 
 from cloud_etc_configs.entities import PlanDiff, Remotekey, ServiceConfiguration

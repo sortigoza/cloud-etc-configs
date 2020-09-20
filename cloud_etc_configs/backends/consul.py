@@ -1,8 +1,4 @@
-from functools import reduce
-from dataclasses import dataclass
 import consul
-import boto3
-import botocore
 
 from cloud_etc_configs.entities import Remotekey, ServiceConfiguration
 
