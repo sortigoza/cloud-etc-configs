@@ -9,7 +9,7 @@ from typing import List
 from toolz.functoolz import pipe
 
 from cloud_etc_configs.adapters import get_remote_handler
-from cloud_etc_configs.diff_engine import compute_diff, dummy_diff
+from cloud_etc_configs.diff_engine import compute_diff
 from cloud_etc_configs.entities import Configuration, Remotekey, ServiceConfiguration
 from cloud_etc_configs.loader import load_services_configurations, load_tool_config
 from cloud_etc_configs.logger import get_logger
@@ -48,7 +48,9 @@ class SyncTask:
             self.combine_with_common_configurations,
             partial(self.print_state, "env_services_configurations"),
             self.get_remote_configuration_state,
+            partial(self.print_state, "diff_input"),
             self.compute_the_diff,
+            partial(self.print_state, "diff"),
             self.print_diff,
             self.apply_the_diff_with_metadata,
         )
