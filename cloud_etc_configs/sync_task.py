@@ -25,19 +25,8 @@ class DiffInput:
 
 
 class SyncTask:
-    def _get_common_and_envs(self, all_envs):
-        common = None
-        environments = []
-        for i in all_envs:
-            if i.environment == "common":
-                common = i
-            else:
-                environments.append(i)
-
-        return common, environments
-
-    def execute(self):
-        self.config = load_tool_config(base_path="./environment/development")
+    def execute(self, base_path):
+        self.config = load_tool_config(base_path=base_path)
         self.remote_handler = get_remote_handler(
             self.config.parameter_storage, self.config.remote_base_key
         )
@@ -54,6 +43,19 @@ class SyncTask:
             self.print_diff,
             self.apply_the_diff_with_metadata,
         )
+
+        self.print_state("complete", "ok")
+
+    def _get_common_and_envs(self, all_envs):
+        common = None
+        environments = []
+        for i in all_envs:
+            if i.environment == "common":
+                common = i
+            else:
+                environments.append(i)
+
+        return common, environments
 
     def combine_with_common_configurations(self, grouped_by_service_name):
         env_services_configurations = []
@@ -80,7 +82,7 @@ class SyncTask:
             env_services_configurations=env_services_configurations,
         )
 
-    def compute_the_diff(self, diff_input: DiffInput):
+    def compute_the_diff(self, diff_input: DiffInput):  # pragma: no cover
         return compute_diff(
             diff_input.current_states,
             diff_input.all_existing_parameters,

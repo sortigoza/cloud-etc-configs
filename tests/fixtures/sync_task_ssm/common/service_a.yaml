@@ -1,0 +1,4 @@
+service_name: service_a
+configuration:
+  common_key_1: value_1
+  common_key_2: value_2
