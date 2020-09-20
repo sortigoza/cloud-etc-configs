@@ -1,0 +1,5 @@
+service_name: service_a
+configuration:
+  key_1: value_1
+  key_2: value_2
+  common_key_2: value_2_overrdie
