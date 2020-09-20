@@ -1,0 +1,4 @@
+environment: development
+common: ../common
+parameter_storage: ssm
+remote_base_key: "/test"

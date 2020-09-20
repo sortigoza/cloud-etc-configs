@@ -5,21 +5,6 @@ from typing import Dict, List, Set
 from cloud_etc_configs.entities import PlanDiff, Remotekey, ServiceConfiguration
 
 
-def dummy_diff(
-    current_states: List[str],
-    all_existing_parameters: List[Remotekey],
-    env_services_configurations: List[ServiceConfiguration],
-):
-    """
-    return a list of dicts with the service config reference and
-    the diff of RemoteKeys that needs to be updated
-    """
-    res = []
-    for config in env_services_configurations:
-        res.append({"service_configuration": config, "diff": config.configurations})
-    return res
-
-
 # Compute the Diff
 # things we need to check here:
 # - is it a new parameter? -> create: check existing parameters vs env_configs
@@ -36,7 +21,7 @@ def compute_diff(
     all_existing_parameters_k_set = set(x.key for x in all_existing_parameters)
 
     service_diff = partial(
-        compute_service_diff,
+        _compute_service_diff,
         all_existing_parameters_kv_set,
         all_existing_parameters_k_set,
     )
@@ -47,7 +32,7 @@ def compute_diff(
     return diffs
 
 
-def compute_service_diff(
+def _compute_service_diff(
     all_existing_parameters_kv_set: Set[str],
     all_existing_parameters_k_set: Set[str],
     current_states_set: Set[str],

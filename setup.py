@@ -24,7 +24,7 @@ def get_version():
     return VERSION_RE.search(init).group(1)
 
 
-requires = ["toolz"]
+requires = ["toolz", "pydantic"]
 
 setup(
     name="cloud-etc-configs",
